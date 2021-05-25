@@ -8,6 +8,7 @@ type Company {
   id: ID! # A ! means the ID cannot be null, is not optional.
   name: String
   description: String
+  jobs: [Job]
 }
 
 type Job {
