@@ -7,10 +7,22 @@ const graphqlApi = axios.create({
   },
 });
 
-export const getJobs = async () => {
+const graphQLRequest = async (query, variables = {}) => {
   try {
-    const response = await graphqlApi.post('', {
-      query: `{
+    const { data } = await graphqlApi.post('', { query, variables });
+    return data?.data;
+  } catch (error) {
+    if (error.response?.data?.errors) {
+      const message = error.response.data.errors
+        .map((error) => error.message)
+        .join('\n');
+      throw new Error(message);
+    }
+  }
+};
+
+export const getJobs = async () => {
+  const data = await graphQLRequest(`{
           jobs {
             id
             title
@@ -19,10 +31,37 @@ export const getJobs = async () => {
               name
             }
           }
-        }`,
-    });
-    return response.data.data.jobs;
-  } catch (error) {
-    console.error(error.message);
-  }
+        }`);
+  return data?.jobs;
+};
+
+export const getJobById = async (id) => {
+  const data = await graphQLRequest(
+    `query JobQuery($id: ID!) {
+    job(id: $id) {
+      id
+      title,
+      description
+      company {
+        id
+        name
+      }
+    }
+  }`,
+    { id }
+  );
+  return data.job;
+};
+
+export const getCompanyById = async (id) => {
+  const data = await graphQLRequest(
+    `query CompanyQuery($id: ID!) {
+      company(id: $id) {
+        name,
+        description
+      }
+    }`,
+    { id }
+  );
+  return data.company;
 };
