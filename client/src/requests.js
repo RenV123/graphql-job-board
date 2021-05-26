@@ -69,3 +69,22 @@ export const getCompanyById = async (id) => {
   );
   return data.company;
 };
+
+export const createJob = async (companyId, title, description) => {
+  const input = { companyId, title, description };
+  const data = await graphQLRequest(
+    `mutation CreateJob($input: CreateJobInput) {
+    job: createJob(input: $input) {
+      id,
+      title,
+      description
+      company {
+        id
+        name
+      }
+    }
+  }`,
+    { input }
+  );
+  return data.job;
+};
