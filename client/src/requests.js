@@ -1,8 +1,22 @@
+import {
+  ApolloClient,
+  HttpLink,
+  InMemoryCache,
+  gql,
+} from '@apollo/client/core';
 import axios from 'axios';
 import { getAccessToken, isLoggedIn } from './auth';
 
+const endPointURL = 'http://localhost:9000/graphql';
+
+const client = new ApolloClient({
+  link: new HttpLink({ uri: endPointURL }),
+  //We store api data in memory, it's also possible to store it in localstorage
+  cache: new InMemoryCache(),
+});
+
 const graphqlApi = axios.create({
-  baseURL: 'http://localhost:9000/graphql',
+  baseURL: endPointURL,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -29,17 +43,23 @@ const graphQLRequest = async (query, variables = {}) => {
 };
 
 export const getJobs = async () => {
-  const data = await graphQLRequest(`{
-          jobs {
-            id
-            title
-            company {
-              id,
-              name
-            }
-          }
-        }`);
-  return data?.jobs;
+  const query = gql`
+    {
+      jobs {
+        id
+        title
+        company {
+          id
+          name
+        }
+      }
+    }
+  `;
+
+  const {
+    data: { jobs },
+  } = await client.query({ query });
+  return jobs;
 };
 
 export const getJobById = async (id) => {
@@ -92,5 +112,6 @@ export const createJob = async (title, description) => {
   }`,
     { input: { title, description } }
   );
+
   return data.job;
 };
