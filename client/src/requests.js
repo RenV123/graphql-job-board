@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { getAccessToken, isLoggedIn } from './auth';
 
 const graphqlApi = axios.create({
   baseURL: 'http://localhost:9000/graphql',
@@ -9,7 +10,13 @@ const graphqlApi = axios.create({
 
 const graphQLRequest = async (query, variables = {}) => {
   try {
-    const { data } = await graphqlApi.post('', { query, variables });
+    const config = {
+      headers: { 'content-type': 'application/json' },
+    };
+    if (isLoggedIn()) {
+      config.headers['authorization'] = 'Bearer ' + getAccessToken();
+    }
+    const { data } = await graphqlApi.post('', { query, variables }, config);
     return data?.data;
   } catch (error) {
     if (error.response?.data?.errors) {
@@ -70,12 +77,11 @@ export const getCompanyById = async (id) => {
   return data.company;
 };
 
-export const createJob = async (companyId, title, description) => {
-  const input = { companyId, title, description };
+export const createJob = async (title, description) => {
   const data = await graphQLRequest(
     `mutation CreateJob($input: CreateJobInput) {
     job: createJob(input: $input) {
-      id,
+      id
       title,
       description
       company {
@@ -84,7 +90,7 @@ export const createJob = async (companyId, title, description) => {
       }
     }
   }`,
-    { input }
+    { input: { title, description } }
   );
   return data.job;
 };

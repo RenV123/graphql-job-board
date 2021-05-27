@@ -15,9 +15,8 @@ export class JobForm extends Component {
   handleClick(event) {
     event.preventDefault();
 
-    const companyId = 'SJV0-wdOM'; //TODO: fix this hardcoded id.
     const { title, description } = this.state;
-    createJob(companyId, title, description).then((job) => {
+    createJob(title, description).then((job) => {
       this.props.history.push(`/jobs/${job.id}`);
     });
   }

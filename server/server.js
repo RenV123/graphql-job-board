@@ -23,7 +23,11 @@ app.use(
 // GraphQl Setup
 const typeDefs = gql(fs.readFileSync('./schema.graphql', { encoding: 'utf8' }));
 const resolvers = require('./resolvers');
-const apolloserver = new ApolloServer({ typeDefs, resolvers });
+
+//Load the user from the db, sub is userId
+const context = ({ req }) => ({ user: db.users.get(req?.user?.sub) });
+const apolloserver = new ApolloServer({ typeDefs, resolvers, context });
+
 apolloserver.applyMiddleware({ app, path: '/graphql' });
 
 app.post('/login', (req, res) => {
